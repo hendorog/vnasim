@@ -106,4 +106,4 @@ src/vnasim/
         synthetic.py       S-parameter data generation
 ```
 
-Model inheritance: `SNA5000 --> E5071B --> E5080, CopperMountain, RSZNB, AnritsuShockLine`
+Each model composes `CommonVNAModel` with the registration mixins it needs — no inheritance between instrument models.
