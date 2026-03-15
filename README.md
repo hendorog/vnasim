@@ -1,5 +1,7 @@
 # vnasim — Multi-VNA SCPI Communications Simulator
 
+> **Early development** — this project has had very little real-world testing so far. Command coverage for each instrument model is based on driver source code analysis, not validated against physical hardware. Expect missing commands, incorrect responses, and rough edges. Unrecognised commands are logged to `vnasim_unhandled.log` to help identify gaps.
+
 A TCP-based simulator that emulates multiple VNA instruments over the network. Any SCPI client connects to the simulator exactly as it would to real hardware and receives realistic responses — no physical instruments required.
 
 ## Quick Start
