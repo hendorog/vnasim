@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vnasim"
+version = "0.1.0"
+description = "Multi-VNA SCPI communications simulator for VNAFrontEnd testing"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+]
+
+[project.scripts]
+vnasim = "vnasim.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
