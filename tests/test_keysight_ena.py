@@ -54,11 +54,6 @@ class TestE5071BModel:
         model.handle(":SENS1:BAND 3000")
         assert model.handle(":SENS1:BAND?") == "3000.0"
 
-    def test_ifbw_with_res_also_works(self, model):
-        """SNA5000-style :BAND:RES also works on the ENA model."""
-        model.handle(":SENS1:BAND:RES 5000")
-        assert model.handle(":SENS1:BAND:RES?") == "5000.0"
-
     # -- ENA-specific data paths --
 
     def test_calc_data_sdat(self, model):

@@ -1,7 +1,7 @@
 """Synthetic S-parameter data generation.
 
-Ported from VNAFrontEnd's SimulationDriver — generates a realistic
-3-port duplexer response (low-band TX, high-band RX, TX-RX isolation).
+Generates a realistic 3-port duplexer response (low-band TX, high-band
+RX, TX-RX isolation).
 """
 
 from __future__ import annotations

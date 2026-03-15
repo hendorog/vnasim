@@ -23,5 +23,3 @@ Initial release.
 - **R&S ZNB/ZNA/ZVA** (`rs_znb`) — named traces (`PAR:SDEF`/`SEL`/`CAT?`), `DATA? SDAT`/`FDAT` argument-after-query, `DATA:STIM?`, `INST:NPORT:COUN?`, `CORR:CDAT` for calibration, `INIT:IMM` trigger
 - **Anritsu ShockLine MS46xxx** (`anritsu_shockline`) — `:SWE:TYPe` (3-char short form), `:HOLD:FUNC` trigger model, `FSEGM` segment type, single-argument cal coefficients (`ED1`/`EP1S`/etc.), per-port cal method commands
 
-### VNAFrontEnd Transport Fix
-- `VISATransport.connect()` now delegates to `TCPTransport` for `TCPIP::…::SOCKET` resources, bypassing pyvisa-py's `termchar_enabled=False` default which caused 30-second read timeouts on raw TCP sockets

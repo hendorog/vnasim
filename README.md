@@ -1,6 +1,6 @@
 # vnasim — Multi-VNA SCPI Communications Simulator
 
-A TCP-based simulator that emulates multiple VNA instruments over the network. VNAFrontEnd (or any SCPI client) connects to the simulator exactly as it would to real hardware and receives realistic responses — no physical instruments required.
+A TCP-based simulator that emulates multiple VNA instruments over the network. Any SCPI client connects to the simulator exactly as it would to real hardware and receives realistic responses — no physical instruments required.
 
 ## Quick Start
 
@@ -9,7 +9,7 @@ pip install -e ".[dev]"
 python -m vnasim config.yaml
 ```
 
-The simulator starts one TCP listener per instrument defined in `config.yaml`. Connect from VNAFrontEnd using:
+The simulator starts one TCP listener per instrument defined in `config.yaml`. Connect using a VISA resource string:
 
 ```
 TCPIP::localhost::5025::SOCKET
@@ -19,17 +19,17 @@ with the appropriate driver type selected.
 
 ## Supported Instruments
 
-| Model | `config.yaml` type | Default Port | VNAFrontEnd driver_type |
-|-------|-------------------|-------------|------------------------|
-| Siglent SNA5000A 2-port | `sna5000` | 5025 | `siglent` |
-| Siglent SNA5000A 4-port | `sna5000` | 5026 | `siglent` |
-| Keysight E5071B 2-port | `e5071b` | 5027 | `keysight_ena` |
-| Keysight E5071C 4-port | `e5071b` | 5028 | `keysight_ena` |
-| Keysight E5080B 2-port | `e5080` | 5029 | `keysight_e5080` |
-| Keysight E5080B 4-port | `e5080` | 5030 | `keysight_e5080` |
-| Copper Mountain S2VNA | `copper_mountain` | 5031 | `copper_mountain` |
-| R&S ZNB8 4-port | `rs_znb` | 5032 | `rs_znb` |
-| Anritsu MS46522B | `anritsu_shockline` | 5033 | `anritsu_shockline` |
+| Model | `config.yaml` type | Default Port |
+|-------|-------------------|-------------|
+| Siglent SNA5000A 2-port | `sna5000` | 5025 |
+| Siglent SNA5000A 4-port | `sna5000` | 5026 |
+| Keysight E5071B 2-port | `e5071b` | 5027 |
+| Keysight E5071C 4-port | `e5071b` | 5028 |
+| Keysight E5080B 2-port | `e5080` | 5029 |
+| Keysight E5080B 4-port | `e5080` | 5030 |
+| Copper Mountain S2VNA | `copper_mountain` | 5031 |
+| R&S ZNB8 4-port | `rs_znb` | 5032 |
+| Anritsu MS46522B | `anritsu_shockline` | 5033 |
 
 ## Configuration
 
@@ -48,12 +48,12 @@ Each entry needs:
 - **model** — one of the types listed above
 - **port** — TCP port to listen on
 - **num_ports** — number of VNA ports (2 or 4)
-- **idn** — the `*IDN?` response string (controls auto-detection in VNAFrontEnd)
+- **idn** — the `*IDN?` response string (controls auto-detection by the client application)
 
 ## How It Works
 
 ```
-VNAFrontEnd  -->  TCP socket  -->  SCPI Parser  -->  VNA Model  -->  Synthetic Data
+SCPI Client  -->  TCP socket  -->  SCPI Parser  -->  VNA Model  -->  Synthetic Data
                   (per instrument)   (tree-based,     (state machine,   (duplexer
                                       short-form       per-channel)      S-params)
                                       matching)
@@ -61,7 +61,7 @@ VNAFrontEnd  -->  TCP socket  -->  SCPI Parser  -->  VNA Model  -->  Synthetic D
 
 - **SCPI Parser** — tree-based command router with IEEE 488.2 short-form matching. `SENS`, `SENSE`, `SENSe` all match. Handles numeric suffixes for channel/trace indices.
 - **VNA Models** — each model maintains per-channel state (frequency, points, IFBW, power, averaging, calibration coefficients, etc.) and registers its SCPI command tree. Models inherit from each other where command sets overlap.
-- **Synthetic Data** — generates a realistic 3-port duplexer response (bandpass transmission, passivity-based reflection, TX-RX isolation) using the same algorithm as VNAFrontEnd's SimulationDriver.
+- **Synthetic Data** — generates a realistic 3-port duplexer response (bandpass transmission, passivity-based reflection, TX-RX isolation).
 
 ## Unhandled Command Logging
 
