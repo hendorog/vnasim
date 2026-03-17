@@ -46,7 +46,10 @@ async def _handle_client(
                 continue
 
             logger.debug("[%s] <<< %s", name, line)
-            result = model.handle(line)
+            # run_in_executor so proxy models can do blocking backend I/O
+            # without stalling the event loop for other clients.
+            loop = asyncio.get_running_loop()
+            result = await loop.run_in_executor(None, model.handle, line)
 
             if isinstance(result, Unhandled):
                 # ---- Log the unhandled command with surrounding context ----

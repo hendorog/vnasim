@@ -44,3 +44,30 @@ instruments:
     port: 5033
     num_ports: 2
     idn: "Anritsu,MS46522B,1234567890,1.0.0"
+
+  # --- Proxy / Emulator instruments ---
+  # These present one VNA dialect to the client while forwarding
+  # data operations to a real backend VNA.  Comment out or remove
+  # if no backend is available.
+  #
+  # - name: "E5071B → SNA5000 Proxy"
+  #   model: e5071b
+  #   port: 5035
+  #   num_ports: 2
+  #   idn: "Agilent Technologies,E5071B,MY00000001,A.09.00"
+  #   mode: proxy
+  #   backend:
+  #     host: "192.168.1.100"
+  #     port: 5025
+  #     dialect: sna5000
+  #
+  # - name: "R&S ZNB → SNA5000 Proxy"
+  #   model: rs_znb
+  #   port: 5036
+  #   num_ports: 2
+  #   idn: "Rohde&Schwarz,ZNB8-2Port,1234567890,3.40"
+  #   mode: proxy
+  #   backend:
+  #     host: "192.168.1.100"
+  #     port: 5025
+  #     dialect: sna5000

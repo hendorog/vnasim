@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0 — 2026-03-18
+
+### Proxy / Emulator Mode
+- Cross-dialect VNA emulator: present one instrument type to the client while forwarding data operations to a different real backend VNA
+- `BackendClient` — synchronous TCP client for communicating with the backend instrument
+- `SNA5000Translator` — maps semantic VNA operations (set frequency, trigger, read data) to Siglent SNA5000 SCPI commands
+- `ProxyVNAModel` — overrides data-path handlers to delegate to the backend; display/bookkeeping stays local
+- Any frontend dialect (E5071B, R&S ZNB, E5080, etc.) can proxy through any backend dialect
+- Config: add `mode: proxy` and `backend:` block to instrument entries
+- Thread-safe backend access with per-client `run_in_executor` in the async server
+
+### Architecture
+- Refactored model hierarchy to composition with mixins (no inheritance between instrument models)
+- `CommonVNAModel` — shared state, handlers, `_register_core()`
+- Registration mixins: `SiglentCommandsMixin`, `ENACommandsMixin`, `E5080CommandsMixin`, `RSZNBCommandsMixin`, `CopperMountainCommandsMixin`, `AnritsuCommandsMixin`
+
 ## 0.1.0 — 2026-03-15
 
 Initial release.

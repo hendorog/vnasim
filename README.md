@@ -52,6 +52,25 @@ Each entry needs:
 - **num_ports** — number of VNA ports (2 or 4)
 - **idn** — the `*IDN?` response string (controls auto-detection by the client application)
 
+### Proxy / Emulator Mode
+
+Add `mode: proxy` and a `backend:` block to forward data operations to a real VNA. The client thinks it's talking to one instrument type while vnasim translates and delegates to a different backend:
+
+```yaml
+  - name: "E5071B → SNA5000 Proxy"
+    model: e5071b
+    port: 5035
+    num_ports: 2
+    idn: "Agilent Technologies,E5071B,MY00000001,A.09.00"
+    mode: proxy
+    backend:
+      host: "192.168.1.100"
+      port: 5025
+      dialect: sna5000
+```
+
+This lets you validate drivers against real measurement data from a different physical instrument. The backend can be a real VNA or another vnasim synthetic instance.
+
 ## How It Works
 
 ```
@@ -98,14 +117,20 @@ src/vnasim/
         types.py           ParsedCommand and Unhandled types
     models/
         base.py            Abstract VNAModel interface
-        sna5000.py         Siglent SNA5000A (base model, ~50 commands)
-        keysight_ena.py    Keysight E5071B/C (extends SNA5000)
-        keysight_e5080.py  Keysight E5080A/B (extends E5071B)
-        copper_mountain.py Copper Mountain S2VNA/S4VNA (extends E5071B)
-        rs_znb.py          R&S ZNB/ZNA/ZVA (extends E5071B)
-        anritsu_shockline.py Anritsu MS46xxx (extends E5071B)
+        common.py          Shared state, handlers, core registration
+        mixins.py          SCPI registration mixins per dialect group
+        proxy.py           ProxyVNAModel for emulator/pass-through mode
+        sna5000.py         Siglent SNA5000A
+        keysight_ena.py    Keysight E5071B/C
+        keysight_e5080.py  Keysight E5080A/B
+        copper_mountain.py Copper Mountain S2VNA/S4VNA
+        rs_znb.py          R&S ZNB/ZNA/ZVA
+        anritsu_shockline.py Anritsu MS46xxx
+    backend/
+        client.py          TCP client for real backend VNA
+        translator.py      SCPI command translators per backend dialect
     data/
         synthetic.py       S-parameter data generation
 ```
 
-Each model composes `CommonVNAModel` with the registration mixins it needs — no inheritance between instrument models.
+Each model composes `CommonVNAModel` with the registration mixins it needs — no inheritance between instrument models. Proxy models extend `ProxyVNAModel` instead, delegating data operations to a real backend VNA via a translator.
