@@ -90,8 +90,11 @@ def _create_proxy(cfg: InstrumentConfig, backends: list) -> object:
 
 
 def main() -> None:
+    level = logging.DEBUG if "-v" in sys.argv else logging.INFO
+    if "-v" in sys.argv:
+        sys.argv.remove("-v")
     logging.basicConfig(
-        level=logging.INFO,
+        level=level,
         format="%(asctime)s %(levelname)-5s %(name)s — %(message)s",
         datefmt="%H:%M:%S",
     )

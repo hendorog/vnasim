@@ -16,7 +16,7 @@ class BackendClient:
     multiple frontend clients sharing one backend cannot interleave.
     """
 
-    def __init__(self, host: str, port: int, timeout: float = 30.0) -> None:
+    def __init__(self, host: str, port: int, timeout: float = 120.0) -> None:
         self._host = host
         self._port = port
         self._timeout = timeout
@@ -61,14 +61,18 @@ class BackendClient:
         with self._lock:
             if self._socket is None:
                 raise ConnectionError("Backend not connected.")
+            logger.debug("Backend ==> %s", command)
             self._socket.sendall((command + "\n").encode("ascii"))
 
     def query(self, command: str) -> str:
         with self._lock:
             if self._socket is None:
                 raise ConnectionError("Backend not connected.")
+            logger.debug("Backend >>> %s", command)
             self._socket.sendall((command + "\n").encode("ascii"))
-            return self._read_line()
+            resp = self._read_line()
+            logger.debug("Backend <<< %s", resp[:80])
+            return resp
 
     def _read_line(self) -> str:
         while b"\n" not in self._recv_buf:

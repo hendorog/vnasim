@@ -112,8 +112,9 @@ class SNA5000Translator:
 
     # -- Trigger --
 
-    def trigger_sweep(self, ch: int) -> list[str]:
+    def trigger_sweep(self, ch: int, tr: int = 1) -> list[str]:
         return [
+            f":DISPlay:TRACe{tr}:ACTivate",
             ":TRIGger:SCOPe ACTive",
             ":TRIGger:SEQuence:SOURce BUS",
             f":INITiate{ch}:IMMediate",
