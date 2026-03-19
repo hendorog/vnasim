@@ -164,9 +164,11 @@ class ENACommandsMixin:
         # Data format
         t.register(":FORMat:DATA", handler=self._handle_form_data)
 
-        # Port count
+        # Port count and channel count
         t.register(":SERVice:PORT:COUNt",
                    query_handler=self._handle_serv_port_count)
+        t.register(":SERVice:CHANnel:COUNt",
+                   query_handler=self._handle_serv_chan_count)
 
         # Display scale (without :SCALe)
         t.register(":DISPlay:WINDow#:TRACe#:Y:RLEVel",
@@ -212,6 +214,9 @@ class ENACommandsMixin:
 
     def _handle_serv_port_count(self, cmd: ParsedCommand) -> str:
         return str(self._num_ports)
+
+    def _handle_serv_chan_count(self, cmd: ParsedCommand) -> str:
+        return str(len(self._channels))
 
 
 # =====================================================================
@@ -426,6 +431,12 @@ class RSZNBCommandsMixin:
         # Port count
         t.register(":INSTrument:NPORt:COUNt",
                    query_handler=self._handle_inst_nport_count)
+        t.register(":INSTrument:PORT:COUNt",
+                   query_handler=self._handle_inst_nport_count)
+
+        # Channel catalog
+        t.register(":CONFigure:CHANnel:CATalog",
+                   query_handler=self._handle_conf_chan_cat)
 
         # Display
         t.register(":DISPlay:WINDow#:STATe",
@@ -478,6 +489,13 @@ class RSZNBCommandsMixin:
 
     def _handle_inst_nport_count(self, cmd: ParsedCommand) -> str:
         return str(self._num_ports)
+
+    def _handle_conf_chan_cat(self, cmd: ParsedCommand) -> str:
+        """Response: ``'1,Ch1,2,Ch2'`` (number,name pairs)."""
+        parts = []
+        for ch in sorted(self._channels):
+            parts.extend([str(ch), f"Ch{ch}"])
+        return "'" + ",".join(parts) + "'"
 
     def _handle_disp_wind_stat(self, cmd: ParsedCommand) -> str | None:
         if cmd.is_query:
