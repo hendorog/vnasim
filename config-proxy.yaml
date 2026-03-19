@@ -1,0 +1,35 @@
+instruments:
+  # Real SNA5000 backend at 192.168.15.178:5025
+
+  - name: "E5071B → SNA5000"
+    model: e5071b
+    port: 5035
+    num_ports: 2
+    idn: "Agilent Technologies,E5071B,MY00000001,A.09.00"
+    mode: proxy
+    backend:
+      host: "192.168.15.178"
+      port: 5025
+      dialect: sna5000
+
+  - name: "R&S ZNB → SNA5000"
+    model: rs_znb
+    port: 5036
+    num_ports: 2
+    idn: "Rohde&Schwarz,ZNB8-2Port,1234567890,3.40"
+    mode: proxy
+    backend:
+      host: "192.168.15.178"
+      port: 5025
+      dialect: sna5000
+
+  - name: "E5080B → SNA5000"
+    model: e5080
+    port: 5037
+    num_ports: 2
+    idn: "Keysight Technologies,E5080B,US00000001,A.15.00.00"
+    mode: proxy
+    backend:
+      host: "192.168.15.178"
+      port: 5025
+      dialect: sna5000

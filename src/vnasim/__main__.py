@@ -63,10 +63,17 @@ def _create_proxy(cfg: InstrumentConfig, backends: list) -> object:
         {"_build_tree": _build_tree},
     )
 
-    # Connect to backend
-    backend = BackendClient(cfg.backend.host, cfg.backend.port)
-    backend.connect()
-    backends.append(backend)
+    # Share a single backend connection per host:port
+    backend_key = (cfg.backend.host, cfg.backend.port)
+    backend = None
+    for existing in backends:
+        if (existing._host, existing._port) == backend_key:
+            backend = existing
+            break
+    if backend is None:
+        backend = BackendClient(cfg.backend.host, cfg.backend.port)
+        backend.connect()
+        backends.append(backend)
 
     # E5080 needs _segments dict
     model = object.__new__(cls)
