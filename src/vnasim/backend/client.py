@@ -30,6 +30,17 @@ class BackendClient:
         sock.connect((self._host, self._port))
         self._socket = sock
         self._recv_buf = b""
+
+        # Some instruments send a welcome banner on connect — drain it.
+        import select
+        while select.select([sock], [], [], 0.5)[0]:
+            chunk = sock.recv(4096)
+            if not chunk:
+                break
+            banner = chunk.decode("ascii", errors="replace").strip()
+            if banner:
+                logger.info("Backend banner: %s", banner)
+
         logger.info("Backend connected to %s:%d", self._host, self._port)
 
     def disconnect(self) -> None:

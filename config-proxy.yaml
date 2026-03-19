@@ -9,7 +9,7 @@ instruments:
     mode: proxy
     backend:
       host: "192.168.15.178"
-      port: 5025
+      port: 5024
       dialect: sna5000
 
   - name: "R&S ZNB → SNA5000"
@@ -20,7 +20,7 @@ instruments:
     mode: proxy
     backend:
       host: "192.168.15.178"
-      port: 5025
+      port: 5024
       dialect: sna5000
 
   - name: "E5080B → SNA5000"
@@ -31,5 +31,5 @@ instruments:
     mode: proxy
     backend:
       host: "192.168.15.178"
-      port: 5025
+      port: 5024
       dialect: sna5000
