@@ -77,4 +77,7 @@ class BackendClient:
                 raise ConnectionError("Backend connection closed.")
             self._recv_buf += chunk
         line, self._recv_buf = self._recv_buf.split(b"\n", 1)
-        return line.decode("ascii").strip()
+        # Strip null bytes and other control characters that some
+        # instruments inject at the start of responses.
+        text = line.decode("ascii", errors="replace")
+        return text.strip().strip("\x00")
