@@ -27,6 +27,7 @@ class ProxyVNAModel(CommonVNAModel):
     translator.  All frontend channels map to backend channel 1.
     """
 
+    # Cyclomatic complexity: 1
     def __init__(
         self,
         *,
@@ -47,29 +48,39 @@ class ProxyVNAModel(CommonVNAModel):
     # from drivers discovering multi-channel support — handle locally.
     _BACKEND_CHANNELS = {1}
 
+    # Cyclomatic complexity: 2
     def _backend_ch(self, frontend_ch: int) -> int | None:
         """Map frontend channel to backend channel, or None if local-only."""
         return 1 if frontend_ch in self._BACKEND_CHANNELS else None
 
+    # Cyclomatic complexity: 1
     def _backend_query(self, scpi: str) -> str:
         return self._backend.query(scpi)
 
+    # Cyclomatic complexity: 1
     def _backend_write(self, scpi: str) -> None:
         self._backend.write(scpi)
 
+    # Cyclomatic complexity: 2
     def _backend_trigger(self, ch: int) -> None:
         """Trigger a sweep on the backend and wait for completion."""
         bch = self._backend_ch(ch)
+        if bch is None:
+            return
         for cmd in self._xlat.trigger_sweep(bch):
             self._backend_write(cmd)
         self._backend_query("*OPC?")
 
+    # Cyclomatic complexity: 2
     def _backend_set_measurement(self, ch: int, param: str) -> None:
         """Configure a measurement on the backend."""
         bch = self._backend_ch(ch)
+        if bch is None:
+            return
         for cmd in self._xlat.set_measurement(bch, 1, param):
             self._backend_write(cmd)
 
+    # Cyclomatic complexity: 1
     def _find_active_trace(self, ch: int) -> TraceState:
         return self._selected_trace_for_channel(ch)
 
@@ -79,6 +90,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Frequency --
 
+    # Cyclomatic complexity: 3
     def _handle_freq_start(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -92,6 +104,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._ch(cmd).start_freq = val
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_freq_stop(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -105,6 +118,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._ch(cmd).stop_freq = val
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_freq_cw(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -114,6 +128,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._backend_write(self._xlat.set_freq_cw(bch, float(cmd.arguments)))
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_freq_data(self, cmd: ParsedCommand) -> str:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -122,6 +137,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Sweep --
 
+    # Cyclomatic complexity: 3
     def _handle_swp_points(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -135,6 +151,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._ch(cmd).num_points = val
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_swp_type(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -144,6 +161,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._backend_write(self._xlat.set_swp_type(bch, cmd.arguments.strip()))
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_swp_time(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -154,6 +172,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- IFBW --
 
+    # Cyclomatic complexity: 3
     def _handle_ifbw(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -165,6 +184,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Power --
 
+    # Cyclomatic complexity: 3
     def _handle_src_power(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -176,6 +196,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Averaging --
 
+    # Cyclomatic complexity: 3
     def _handle_avg_state(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -185,14 +206,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._backend_write(self._xlat.set_avg_state(bch, cmd.arguments.strip()))
         return None
 
-    def _handle_avg_count(self, cmd: ParsedCommand) -> str:
-        bch = self._backend_ch(cmd.channel)
-        if bch is None:
-            return super()._handle_avg_count(cmd)
-        return self._backend_query(self._xlat.query_avg_count(bch))
-
-    # -- Smoothing --
-
+    # Cyclomatic complexity: 3
     def _handle_smooth_state(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -202,6 +216,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._backend_write(self._xlat.set_smooth_state(bch, cmd.arguments.strip()))
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_smooth_aperture(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -215,6 +230,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Correction --
 
+    # Cyclomatic complexity: 3
     def _handle_corr_state(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -224,6 +240,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._backend_write(self._xlat.set_corr_state(bch, cmd.arguments.strip()))
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_corr_coef_data(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -239,6 +256,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Segment data --
 
+    # Cyclomatic complexity: 3
     def _handle_seg_data(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -250,6 +268,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Data reads (the core value of the proxy) --
 
+    # Cyclomatic complexity: 2
     def _handle_calc_sel_sdata(self, cmd: ParsedCommand) -> str:
         ch = cmd.channel
         bch = self._backend_ch(ch)
@@ -261,6 +280,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._backend_trigger(ch)
         return self._backend_query(self._xlat.query_sdata(bch, param))
 
+    # Cyclomatic complexity: 2
     def _handle_calc_sel_fdata(self, cmd: ParsedCommand) -> str:
         ch = cmd.channel
         bch = self._backend_ch(ch)
@@ -274,6 +294,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._backend_trigger(ch)
         return self._backend_query(self._xlat.query_selected_fdata(bch))
 
+    # Cyclomatic complexity: 2
     def _handle_data_raw(self, cmd: ParsedCommand) -> str:
         ch = cmd.channel
         bch = self._backend_ch(ch)
@@ -284,6 +305,7 @@ class ProxyVNAModel(CommonVNAModel):
         self._backend_trigger(ch)
         return self._backend_query(self._xlat.query_raw_data(bch, param))
 
+    # Cyclomatic complexity: 2
     def _handle_data_corr(self, cmd: ParsedCommand) -> str:
         ch = cmd.channel
         bch = self._backend_ch(ch)
@@ -296,6 +318,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Frequency center / span --
 
+    # Cyclomatic complexity: 3
     def _handle_freq_center(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -314,6 +337,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_freq_center(cmd)
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_freq_span(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -334,30 +358,39 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Sweep delay --
 
+    # Cyclomatic complexity: 3
     def _handle_swp_delay(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
             return super()._handle_swp_delay(cmd)
         if cmd.is_query:
-            return self._backend_query(self._xlat.query_swp_delay(bch))
+            resp = self._backend_query(self._xlat.query_swp_delay(bch))
+            self._ch(cmd).sweep_delay = float(resp)
+            return resp
         self._backend_write(
             self._xlat.set_swp_delay(bch, float(cmd.arguments))
         )
+        super()._handle_swp_delay(cmd)
         return None
 
     # -- Averaging extras --
 
+    # Cyclomatic complexity: 3
     def _handle_avg_count(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
             return super()._handle_avg_count(cmd)
         if cmd.is_query:
-            return self._backend_query(self._xlat.query_avg_count(bch))
+            resp = self._backend_query(self._xlat.query_avg_count(bch))
+            self._ch(cmd).avg_count = int(float(resp))
+            return resp
         self._backend_write(
             self._xlat.set_avg_count(bch, int(float(cmd.arguments)))
         )
+        super()._handle_avg_count(cmd)
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_avg_clear(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -367,29 +400,38 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Electrical delay --
 
+    # Cyclomatic complexity: 3
     def _handle_elec_delay(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
             return super()._handle_elec_delay(cmd)
         if cmd.is_query:
-            return self._backend_query(self._xlat.query_elec_delay(bch))
+            resp = self._backend_query(self._xlat.query_elec_delay(bch))
+            self._ch(cmd).elec_delay = float(resp)
+            return resp
         self._backend_write(
             self._xlat.set_elec_delay(bch, float(cmd.arguments))
         )
+        super()._handle_elec_delay(cmd)
         return None
 
     # -- Output state --
 
+    # Cyclomatic complexity: 2
     def _handle_output(self, cmd: ParsedCommand) -> str | None:
         if cmd.is_query:
-            return self._backend_query(self._xlat.query_output())
+            resp = self._backend_query(self._xlat.query_output())
+            self._output_state = resp.strip().upper() in ("ON", "1")
+            return resp
         self._backend_write(
             self._xlat.set_output(cmd.arguments.strip())
         )
+        super()._handle_output(cmd)
         return None
 
     # -- Markers --
 
+    # Cyclomatic complexity: 3
     def _handle_marker_state(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -405,6 +447,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_marker_state(cmd)
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_marker_activate(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -414,6 +457,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_marker_activate(cmd)
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_marker_x(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -427,6 +471,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_marker_x(cmd)
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_marker_y(self, cmd: ParsedCommand) -> str:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -434,6 +479,7 @@ class ProxyVNAModel(CommonVNAModel):
         mk = cmd.trace
         return self._backend_query(self._xlat.query_marker_y(bch, mk))
 
+    # Cyclomatic complexity: 3
     def _handle_marker_func_type(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -449,6 +495,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_marker_func_type(cmd)
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_marker_func_exec(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -465,6 +512,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_marker_x(sync_cmd)
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_marker_func_target(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -480,6 +528,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_marker_func_target(cmd)
         return None
 
+    # Cyclomatic complexity: 7
     def _handle_marker_set(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -499,6 +548,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_marker_set(cmd)
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_marker_set_center(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -507,6 +557,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_marker_set_center(cmd)
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_marker_set_start(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -515,6 +566,7 @@ class ProxyVNAModel(CommonVNAModel):
         super()._handle_marker_set_start(cmd)
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_marker_set_stop(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -525,6 +577,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Limit lines --
 
+    # Cyclomatic complexity: 3
     def _handle_limit_state(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -536,12 +589,14 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_limit_fail(self, cmd: ParsedCommand) -> str:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
             return super()._handle_limit_fail(cmd)
         return self._backend_query(self._xlat.query_limit_fail(bch))
 
+    # Cyclomatic complexity: 3
     def _handle_limit_data(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -553,6 +608,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_limit_clear(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -562,6 +618,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Math / memory --
 
+    # Cyclomatic complexity: 3
     def _handle_math_func(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -573,6 +630,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 2
     def _handle_math_memorize(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -582,6 +640,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Power extras --
 
+    # Cyclomatic complexity: 3
     def _handle_src_port_power(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -596,6 +655,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_src_power_coupling(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -609,6 +669,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_src_power_slope(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -620,6 +681,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_src_power_slope_state(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -633,6 +695,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_src_power_start(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -644,6 +707,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_src_power_stop(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -657,6 +721,7 @@ class ProxyVNAModel(CommonVNAModel):
 
     # -- Port extension --
 
+    # Cyclomatic complexity: 3
     def _handle_port_ext_state(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -670,6 +735,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_port_ext_time(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -684,6 +750,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_velocity_factor(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
@@ -697,6 +764,7 @@ class ProxyVNAModel(CommonVNAModel):
         )
         return None
 
+    # Cyclomatic complexity: 3
     def _handle_impedance(self, cmd: ParsedCommand) -> str | None:
         bch = self._backend_ch(cmd.channel)
         if bch is None:
