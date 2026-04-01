@@ -71,10 +71,7 @@ class ProxyVNAModel(CommonVNAModel):
             self._backend_write(cmd)
 
     def _find_active_trace(self, ch: int) -> TraceState:
-        for t in self._traces.values():
-            if t.channel == ch:
-                return t
-        return TraceState(channel=ch)
+        return self._selected_trace_for_channel(ch)
 
     # ------------------------------------------------------------------
     # Overridden handlers — forwarded to backend
@@ -296,3 +293,417 @@ class ProxyVNAModel(CommonVNAModel):
         self._backend_set_measurement(ch, param)
         self._backend_trigger(ch)
         return self._backend_query(self._xlat.query_sdata(bch, param))
+
+    # -- Frequency center / span --
+
+    def _handle_freq_center(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_freq_center(cmd)
+        if cmd.is_query:
+            resp = self._backend_query(self._xlat.query_freq_center(bch))
+            sync_cmd = ParsedCommand(
+                raw=cmd.raw,
+                is_query=False,
+                arguments=resp,
+                suffixes=cmd.suffixes,
+            )
+            super()._handle_freq_center(sync_cmd)
+            return resp
+        self._backend_write(self._xlat.set_freq_center(bch, float(cmd.arguments)))
+        super()._handle_freq_center(cmd)
+        return None
+
+    def _handle_freq_span(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_freq_span(cmd)
+        if cmd.is_query:
+            resp = self._backend_query(self._xlat.query_freq_span(bch))
+            sync_cmd = ParsedCommand(
+                raw=cmd.raw,
+                is_query=False,
+                arguments=resp,
+                suffixes=cmd.suffixes,
+            )
+            super()._handle_freq_span(sync_cmd)
+            return resp
+        self._backend_write(self._xlat.set_freq_span(bch, float(cmd.arguments)))
+        super()._handle_freq_span(cmd)
+        return None
+
+    # -- Sweep delay --
+
+    def _handle_swp_delay(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_swp_delay(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_swp_delay(bch))
+        self._backend_write(
+            self._xlat.set_swp_delay(bch, float(cmd.arguments))
+        )
+        return None
+
+    # -- Averaging extras --
+
+    def _handle_avg_count(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_avg_count(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_avg_count(bch))
+        self._backend_write(
+            self._xlat.set_avg_count(bch, int(float(cmd.arguments)))
+        )
+        return None
+
+    def _handle_avg_clear(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return None
+        self._backend_write(self._xlat.avg_clear(bch))
+        return None
+
+    # -- Electrical delay --
+
+    def _handle_elec_delay(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_elec_delay(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_elec_delay(bch))
+        self._backend_write(
+            self._xlat.set_elec_delay(bch, float(cmd.arguments))
+        )
+        return None
+
+    # -- Output state --
+
+    def _handle_output(self, cmd: ParsedCommand) -> str | None:
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_output())
+        self._backend_write(
+            self._xlat.set_output(cmd.arguments.strip())
+        )
+        return None
+
+    # -- Markers --
+
+    def _handle_marker_state(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_state(cmd)
+        mk = cmd.trace
+        if cmd.is_query:
+            return self._backend_query(
+                self._xlat.query_marker_state(bch, mk)
+            )
+        self._backend_write(
+            self._xlat.set_marker_state(bch, mk, cmd.arguments.strip())
+        )
+        super()._handle_marker_state(cmd)
+        return None
+
+    def _handle_marker_activate(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_activate(cmd)
+        mk = cmd.trace
+        self._backend_write(self._xlat.set_marker_activate(bch, mk))
+        super()._handle_marker_activate(cmd)
+        return None
+
+    def _handle_marker_x(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_x(cmd)
+        mk = cmd.trace
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_marker_x(bch, mk))
+        self._backend_write(
+            self._xlat.set_marker_x(bch, mk, float(cmd.arguments))
+        )
+        super()._handle_marker_x(cmd)
+        return None
+
+    def _handle_marker_y(self, cmd: ParsedCommand) -> str:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_y(cmd)
+        mk = cmd.trace
+        return self._backend_query(self._xlat.query_marker_y(bch, mk))
+
+    def _handle_marker_func_type(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_func_type(cmd)
+        mk = cmd.trace
+        if cmd.is_query:
+            return self._backend_query(
+                self._xlat.query_marker_func_type(bch, mk)
+            )
+        self._backend_write(
+            self._xlat.set_marker_func_type(bch, mk, cmd.arguments.strip())
+        )
+        super()._handle_marker_func_type(cmd)
+        return None
+
+    def _handle_marker_func_exec(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_func_exec(cmd)
+        mk = cmd.trace
+        self._backend_write(self._xlat.marker_func_exec(bch, mk))
+        resp = self._backend_query(self._xlat.query_marker_x(bch, mk))
+        sync_cmd = ParsedCommand(
+            raw=cmd.raw,
+            is_query=False,
+            arguments=resp,
+            suffixes=cmd.suffixes,
+        )
+        super()._handle_marker_x(sync_cmd)
+        return None
+
+    def _handle_marker_func_target(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_func_target(cmd)
+        mk = cmd.trace
+        if cmd.is_query:
+            return self._backend_query(
+                self._xlat.query_marker_func_target(bch, mk)
+            )
+        self._backend_write(
+            self._xlat.set_marker_func_target(bch, mk, float(cmd.arguments))
+        )
+        super()._handle_marker_func_target(cmd)
+        return None
+
+    def _handle_marker_set(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_set(cmd)
+        mk = cmd.trace
+        action = cmd.arguments.strip().upper()
+        if action.startswith("CENT"):
+            self._backend_write(self._xlat.marker_set_center(bch, mk))
+        elif action.startswith("STAR"):
+            self._backend_write(self._xlat.marker_set_start(bch, mk))
+        elif action.startswith("STOP"):
+            self._backend_write(self._xlat.marker_set_stop(bch, mk))
+        elif action.startswith("RLEV"):
+            self._backend_write(self._xlat.marker_set_rlevel(bch, mk))
+        elif action.startswith("DEL"):
+            self._backend_write(self._xlat.marker_set_delay(bch, mk))
+        super()._handle_marker_set(cmd)
+        return None
+
+    def _handle_marker_set_center(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_set_center(cmd)
+        self._backend_write(self._xlat.marker_set_center(bch, cmd.trace))
+        super()._handle_marker_set_center(cmd)
+        return None
+
+    def _handle_marker_set_start(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_set_start(cmd)
+        self._backend_write(self._xlat.marker_set_start(bch, cmd.trace))
+        super()._handle_marker_set_start(cmd)
+        return None
+
+    def _handle_marker_set_stop(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_marker_set_stop(cmd)
+        self._backend_write(self._xlat.marker_set_stop(bch, cmd.trace))
+        super()._handle_marker_set_stop(cmd)
+        return None
+
+    # -- Limit lines --
+
+    def _handle_limit_state(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_limit_state(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_limit_state(bch))
+        self._backend_write(
+            self._xlat.set_limit_state(bch, cmd.arguments.strip())
+        )
+        return None
+
+    def _handle_limit_fail(self, cmd: ParsedCommand) -> str:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_limit_fail(cmd)
+        return self._backend_query(self._xlat.query_limit_fail(bch))
+
+    def _handle_limit_data(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_limit_data(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_limit_data(bch))
+        self._backend_write(
+            self._xlat.set_limit_data(bch, cmd.arguments.strip())
+        )
+        return None
+
+    def _handle_limit_clear(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_limit_clear(cmd)
+        self._backend_write(self._xlat.limit_clear(bch))
+        return None
+
+    # -- Math / memory --
+
+    def _handle_math_func(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_math_func(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_math_func(bch))
+        self._backend_write(
+            self._xlat.set_math_func(bch, cmd.arguments.strip())
+        )
+        return None
+
+    def _handle_math_memorize(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_math_memorize(cmd)
+        self._backend_write(self._xlat.math_memorize(bch))
+        return None
+
+    # -- Power extras --
+
+    def _handle_src_port_power(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_src_port_power(cmd)
+        port = cmd.trace
+        if cmd.is_query:
+            return self._backend_query(
+                self._xlat.query_port_power(bch, port)
+            )
+        self._backend_write(
+            self._xlat.set_port_power(bch, port, float(cmd.arguments))
+        )
+        return None
+
+    def _handle_src_power_coupling(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_src_power_coupling(cmd)
+        if cmd.is_query:
+            return self._backend_query(
+                self._xlat.query_power_coupling(bch)
+            )
+        self._backend_write(
+            self._xlat.set_power_coupling(bch, cmd.arguments.strip())
+        )
+        return None
+
+    def _handle_src_power_slope(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_src_power_slope(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_power_slope(bch))
+        self._backend_write(
+            self._xlat.set_power_slope(bch, float(cmd.arguments))
+        )
+        return None
+
+    def _handle_src_power_slope_state(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_src_power_slope_state(cmd)
+        if cmd.is_query:
+            return self._backend_query(
+                self._xlat.query_power_slope_state(bch)
+            )
+        self._backend_write(
+            self._xlat.set_power_slope_state(bch, cmd.arguments.strip())
+        )
+        return None
+
+    def _handle_src_power_start(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_src_power_start(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_power_start(bch))
+        self._backend_write(
+            self._xlat.set_power_start(bch, float(cmd.arguments))
+        )
+        return None
+
+    def _handle_src_power_stop(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_src_power_stop(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_power_stop(bch))
+        self._backend_write(
+            self._xlat.set_power_stop(bch, float(cmd.arguments))
+        )
+        return None
+
+    # -- Port extension --
+
+    def _handle_port_ext_state(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_port_ext_state(cmd)
+        if cmd.is_query:
+            return self._backend_query(
+                self._xlat.query_port_ext_state(bch)
+            )
+        self._backend_write(
+            self._xlat.set_port_ext_state(bch, cmd.arguments.strip())
+        )
+        return None
+
+    def _handle_port_ext_time(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_port_ext_time(cmd)
+        port = cmd.trace
+        if cmd.is_query:
+            return self._backend_query(
+                self._xlat.query_port_ext_time(bch, port)
+            )
+        self._backend_write(
+            self._xlat.set_port_ext_time(bch, port, float(cmd.arguments))
+        )
+        return None
+
+    def _handle_velocity_factor(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_velocity_factor(cmd)
+        if cmd.is_query:
+            return self._backend_query(
+                self._xlat.query_velocity_factor(bch)
+            )
+        self._backend_write(
+            self._xlat.set_velocity_factor(bch, float(cmd.arguments))
+        )
+        return None
+
+    def _handle_impedance(self, cmd: ParsedCommand) -> str | None:
+        bch = self._backend_ch(cmd.channel)
+        if bch is None:
+            return super()._handle_impedance(cmd)
+        if cmd.is_query:
+            return self._backend_query(self._xlat.query_impedance(bch))
+        self._backend_write(
+            self._xlat.set_impedance(bch, float(cmd.arguments))
+        )
+        return None

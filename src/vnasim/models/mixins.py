@@ -30,9 +30,13 @@ class SiglentCommandsMixin:
         # Sweep type (full keyword TYPE)
         t.register(":SENSe#:SWEep:TYPE", handler=self._handle_swp_type)
 
-        # Averaging with :STATe
+        # Averaging with :STATe + count + clear + type
         t.register(":SENSe#:AVERage:STATe", handler=self._handle_avg_state)
-        t.register(":SENSe#:AVERage:COUNt", query_handler=self._handle_avg_count)
+        t.register(":SENSe#:AVERage:COUNt", handler=self._handle_avg_count)
+        t.register(":CALCulate#:AVERage:CLEar",
+                   set_handler=self._handle_avg_clear)
+        t.register(":CALCulate#:AVERage:TYPe",
+                   handler=self._handle_avg_type)
 
         # Smoothing with :STATe
         t.register(":CALCulate#:SMOothing:STATe", handler=self._handle_smooth_state)
@@ -60,11 +64,95 @@ class SiglentCommandsMixin:
         # Frequency list
         t.register(":SENSe#:FREQuency:DATA", query_handler=self._handle_freq_data)
 
-        # Trigger
-        t.register(":INITiate#:CONTinuous", set_handler=self._handle_init_cont)
-        t.register(":TRIGger:SCOPe", set_handler=self._handle_trig_scope)
-        t.register(":TRIGger:SEQuence:SOURce", set_handler=self._handle_trig_src)
-        t.register(":TRIGger:SEQuence:SING", set_handler=self._handle_trig_sing)
+        # Electrical delay (SNA5000: CALC:CORR:EDELay:TIME)
+        t.register(":CALCulate#:CORRection:EDELay:TIME",
+                   handler=self._handle_elec_delay)
+
+        # Markers (SNA5000: CALC:MARK{1-15})
+        t.register(":CALCulate#:MARKer#:STATe",
+                   handler=self._handle_marker_state)
+        t.register(":CALCulate#:MARKer#:ACTivate",
+                   set_handler=self._handle_marker_activate)
+        t.register(":CALCulate#:MARKer#:X", handler=self._handle_marker_x)
+        t.register(":CALCulate#:MARKer#:Y",
+                   query_handler=self._handle_marker_y)
+        t.register(":CALCulate#:MARKer#:DISCrete",
+                   handler=self._handle_marker_discrete)
+        t.register(":CALCulate#:MARKer#:COUPle",
+                   handler=self._handle_marker_coupling)
+        t.register(":CALCulate#:MARKer#:REFerence:STATe",
+                   handler=self._handle_marker_ref_state)
+        t.register(":CALCulate#:MARKer#:REFerence:X",
+                   handler=self._handle_marker_ref_x)
+        t.register(":CALCulate#:MARKer#:REFerence:Y",
+                   query_handler=self._handle_marker_ref_y)
+        t.register(":CALCulate#:MARKer#:SET:CENTer",
+                   set_handler=self._handle_marker_set_center)
+        t.register(":CALCulate#:MARKer#:SET:STARt",
+                   set_handler=self._handle_marker_set_start)
+        t.register(":CALCulate#:MARKer#:SET:STOP",
+                   set_handler=self._handle_marker_set_stop)
+        t.register(":CALCulate#:MARKer#:SET:RLEVel",
+                   set_handler=self._handle_marker_set_rlevel)
+        t.register(":CALCulate#:MARKer#:SET:DELay",
+                   set_handler=self._handle_marker_set_delay)
+        t.register(":CALCulate#:MARKer#:FUNCtion:TYPE",
+                   handler=self._handle_marker_func_type)
+        t.register(":CALCulate#:MARKer#:FUNCtion:EXECute",
+                   set_handler=self._handle_marker_func_exec)
+        t.register(":CALCulate#:MARKer#:FUNCtion:TARGet",
+                   handler=self._handle_marker_func_target)
+        t.register(":CALCulate#:MARKer#:FUNCtion:TTRansition",
+                   handler=self._handle_marker_func_ttrans)
+        t.register(":CALCulate#:MARKer#:FUNCtion:TRACking",
+                   handler=self._handle_marker_func_tracking)
+        t.register(":CALCulate#:MARKer#:FUNCtion:DOMain:STATe",
+                   handler=self._handle_marker_func_domain_state)
+        t.register(":CALCulate#:MARKer#:FUNCtion:DOMain:STARt",
+                   handler=self._handle_marker_func_domain_start)
+        t.register(":CALCulate#:MARKer#:FUNCtion:DOMain:STOP",
+                   handler=self._handle_marker_func_domain_stop)
+        t.register(":CALCulate#:MARKer#:FUNCtion:MULTi:TYPE",
+                   handler=self._handle_marker_func_type)
+        t.register(":CALCulate#:MARKer#:FUNCtion:MULTi:EXECute",
+                   set_handler=self._handle_marker_func_exec)
+        t.register(":CALCulate#:MARKer#:FUNCtion:MULTi:TRACking",
+                   handler=self._handle_marker_func_tracking)
+
+        # Limit lines (SNA5000: CALC:LIMit)
+        t.register(":CALCulate#:LIMit:STATe",
+                   handler=self._handle_limit_state)
+        t.register(":CALCulate#:LIMit:DISPlay:STATe",
+                   handler=self._handle_limit_display)
+        t.register(":CALCulate#:LIMit:FAIL",
+                   query_handler=self._handle_limit_fail)
+        t.register(":CALCulate#:LIMit:REPort:ALL",
+                   query_handler=self._handle_limit_report_all)
+        t.register(":CALCulate#:LIMit:REPort:DATA",
+                   query_handler=self._handle_limit_report_data)
+        t.register(":CALCulate#:LIMit:REPort:POINts",
+                   query_handler=self._handle_limit_report_points)
+        t.register(":CALCulate#:LIMit:DATA", handler=self._handle_limit_data)
+        t.register(":CALCulate#:LIMit:UPPer:DATA",
+                   handler=self._handle_limit_data)
+        t.register(":CALCulate#:LIMit:LOWer:DATA",
+                   handler=self._handle_limit_data)
+        t.register(":CALCulate#:LIMit:CLEar",
+                   set_handler=self._handle_limit_clear)
+        t.register(":CALCulate#:LIMit:OFFSet:AMPLitude",
+                   handler=self._handle_limit_offset_ampl)
+        t.register(":CALCulate#:LIMit:OFFSet:STIMulus",
+                   handler=self._handle_limit_offset_stim)
+
+        # Trace math / memory (SNA5000: CALC:MATH)
+        t.register(":CALCulate#:MATH:FUNCtion",
+                   handler=self._handle_math_func)
+        t.register(":CALCulate#:MATH:MEMorize",
+                   set_handler=self._handle_math_memorize)
+        t.register(":CALCulate#:MATH:STATistics:STATe",
+                   handler=self._handle_math_stats_state)
+        t.register(":CALCulate#:MATH:STATistics:DATA",
+                   query_handler=self._handle_math_stats_data)
 
         # Display — scale (with :SCALe level)
         t.register(":DISPlay:WINDow#:TRACe#:Y:SCALe:RLEVel",
@@ -73,6 +161,23 @@ class SiglentCommandsMixin:
                    handler=self._handle_disp_pdiv)
         t.register(":DISPlay:WINDow#:TRACe#:Y:SCALe:RPOSition",
                    handler=self._handle_disp_rpos)
+        t.register(":DISPlay:WINDow#:TRACe#:Y:SCALe:AUTO",
+                   set_handler=self._handle_disp_auto_scale)
+        t.register(":DISPlay:MAXimize", set_handler=self._handle_noop_sna)
+
+        # Trigger
+        t.register(":INITiate#:CONTinuous", set_handler=self._handle_init_cont)
+        t.register(":TRIGger:SCOPe", set_handler=self._handle_trig_scope)
+        t.register(":TRIGger:SEQuence:SOURce",
+                   handler=self._handle_trig_src_query)
+        t.register(":TRIGger:SEQuence:SING", set_handler=self._handle_trig_sing)
+        t.register(":TRIGger:SEQuence:IMMediate",
+                   set_handler=self._handle_trig_sing)
+        t.register(":TRIGger:POINt", handler=self._handle_trig_point)
+        t.register(":TRIGger:EXTernal:SLOPe",
+                   handler=self._handle_noop_sna_query)
+        t.register(":TRIGger:OUTPut:STATe",
+                   handler=self._handle_noop_sna_query)
 
         # Display — channel/trace management
         t.register(":DISPlay:CHANnel:LIST", query_handler=self._handle_chan_list)
@@ -88,6 +193,16 @@ class SiglentCommandsMixin:
 
         # Balanced topology
         t.register(":CALCulate#:DTOPology", handler=self._handle_dtopology)
+
+        # Scale (via CALCulate subsystem, SNA5000 alternate path)
+        t.register(":CALCulate#:SCALe:DIVision",
+                   handler=self._handle_disp_pdiv)
+        t.register(":CALCulate#:SCALe:RLEVel",
+                   handler=self._handle_disp_rlevel)
+        t.register(":CALCulate#:SCALe:RPOSition",
+                   handler=self._handle_disp_rpos)
+        t.register(":CALCulate#:SCALe:AUTO",
+                   set_handler=self._handle_disp_auto_scale)
 
         # Correction coefficients (with :DATA level)
         t.register(":SENSe#:CORRection:COEFficient:DATA",
@@ -105,8 +220,58 @@ class SiglentCommandsMixin:
         t.register(":SENSe#:CORRection:COEFficient:METHod:SOLT#",
                    set_handler=self._handle_corr_meth)
 
-        # Segment sweep (bulk)
+        # Segment sweep (bulk + total points/time)
         t.register(":SENSe#:SEGMent:DATA", handler=self._handle_seg_data)
+        t.register(":SENSe#:SEGMent:SWEep:POINts",
+                   query_handler=self._handle_seg_swp_points_total)
+        t.register(":SENSe#:SEGMent:SWEep:TIME",
+                   query_handler=self._handle_seg_swp_time_total)
+
+    def _handle_noop_sna(self, cmd: ParsedCommand) -> str | None:
+        return None
+
+    def _handle_noop_sna_query(self, cmd: ParsedCommand) -> str | None:
+        if cmd.is_query:
+            return "0"
+        return None
+
+    def _parse_seg_data(self, cmd: ParsedCommand) -> tuple[int, float]:
+        """Parse segment sweep payload and return total points/time."""
+        state = self._ch(cmd)
+        if not state.segment_data:
+            return state.num_points, state.sweep_time
+        parts = [part.strip() for part in state.segment_data.split(",")]
+        if len(parts) < 3:
+            return state.num_points, state.sweep_time
+        try:
+            seg_count = int(float(parts[1]))
+        except ValueError:
+            return state.num_points, state.sweep_time
+        cursor = 2
+        if len(parts) >= 3 + seg_count * 5:
+            cursor = 3
+        total_points = 0
+        total_time = 0.0
+        for _ in range(seg_count):
+            if cursor + 4 >= len(parts):
+                break
+            try:
+                total_points += int(float(parts[cursor + 2]))
+                total_time += float(parts[cursor + 4]) / 1000.0
+            except ValueError:
+                return state.num_points, state.sweep_time
+            cursor += 5
+        if total_points == 0:
+            return state.num_points, state.sweep_time
+        return total_points, total_time
+
+    def _handle_seg_swp_points_total(self, cmd: ParsedCommand) -> str:
+        total_points, _ = self._parse_seg_data(cmd)
+        return str(total_points)
+
+    def _handle_seg_swp_time_total(self, cmd: ParsedCommand) -> str:
+        _, total_time = self._parse_seg_data(cmd)
+        return str(total_time)
 
 
 # =====================================================================
@@ -125,9 +290,10 @@ class ENACommandsMixin:
         # IFBW direct (no :RES)
         t.register(":SENSe#:BANDwidth", handler=self._handle_ifbw)
 
-        # Averaging direct (no :STATe)
+        # Averaging direct (no :STATe) + count + clear
         t.register(":SENSe#:AVERage", handler=self._handle_avg_state)
-        t.register(":SENSe#:AVERage:COUNt", query_handler=self._handle_avg_count)
+        t.register(":SENSe#:AVERage:COUNt", handler=self._handle_avg_count)
+        t.register(":SENSe#:AVERage:CLEar", set_handler=self._handle_avg_clear)
 
         # Smoothing direct (no :STATe)
         t.register(":CALCulate#:SMOothing", handler=self._handle_smooth_state)
@@ -147,19 +313,94 @@ class ENACommandsMixin:
                    query_handler=self._handle_calc_sel_sdata)
         t.register(":CALCulate#:DATA:FDAT",
                    query_handler=self._handle_calc_sel_fdata)
+        t.register(":CALCulate#:DATA:FMEM",
+                   query_handler=self._handle_data_fmem)
+        t.register(":CALCulate#:DATA:SMEM",
+                   query_handler=self._handle_data_smem)
 
         # Trace format (CALC level)
         t.register(":CALCulate#:FORMat", handler=self._handle_calc_sel_fmt)
 
-        # Trigger
-        t.register(":TRIGger:SOURce", set_handler=self._handle_trig_src)
+        # Electrical delay (E5071B: CALC:CORR:EDEL:TIME)
+        t.register(":CALCulate#:CORRection:EDELay:TIME",
+                   handler=self._handle_elec_delay)
+        t.register(":CALCulate#:CORRection:OFFSet:PHASe",
+                   handler=self._handle_phase_offset)
+
+        # Markers (E5071B: CALC:MARK{1-10})
+        t.register(":CALCulate#:MARKer#:STATe",
+                   handler=self._handle_marker_state)
+        t.register(":CALCulate#:MARKer#:ACTivate",
+                   set_handler=self._handle_marker_activate)
+        t.register(":CALCulate#:MARKer#:X", handler=self._handle_marker_x)
+        t.register(":CALCulate#:MARKer#:Y",
+                   query_handler=self._handle_marker_y)
+        t.register(":CALCulate#:MARKer#:DISCrete",
+                   handler=self._handle_marker_discrete)
+        t.register(":CALCulate#:MARKer#:COUPle",
+                   handler=self._handle_marker_coupling)
+        t.register(":CALCulate#:MARKer#:REFerence",
+                   handler=self._handle_marker_ref_state)
+        t.register(":CALCulate#:MARKer#:SET",
+                   set_handler=self._handle_marker_set)
+        t.register(":CALCulate#:MARKer#:FUNCtion:TYPE",
+                   handler=self._handle_marker_func_type)
+        t.register(":CALCulate#:MARKer#:FUNCtion:EXECute",
+                   set_handler=self._handle_marker_func_exec)
+        t.register(":CALCulate#:MARKer#:FUNCtion:TARGet",
+                   handler=self._handle_marker_func_target)
+        t.register(":CALCulate#:MARKer#:FUNCtion:TTRansition",
+                   handler=self._handle_marker_func_ttrans)
+        t.register(":CALCulate#:MARKer#:FUNCtion:TRACking",
+                   handler=self._handle_marker_func_tracking)
+        t.register(":CALCulate#:MARKer#:FUNCtion:DOMain",
+                   handler=self._handle_marker_func_domain_state)
+        t.register(":CALCulate#:MARKer#:FUNCtion:DOMain:STARt",
+                   handler=self._handle_marker_func_domain_start)
+        t.register(":CALCulate#:MARKer#:FUNCtion:DOMain:STOP",
+                   handler=self._handle_marker_func_domain_stop)
+        t.register(":CALCulate#:MARKer#:BWIDth",
+                   handler=self._handle_marker_bw_state)
+        t.register(":CALCulate#:MARKer#:BWIDth:DATA",
+                   query_handler=self._handle_marker_bw_data)
+        t.register(":CALCulate#:MARKer#:BWIDth:THReshold",
+                   handler=self._handle_marker_bw_threshold)
+
+        # Limit lines (E5071B: CALC:LIM)
+        t.register(":CALCulate#:LIMit", handler=self._handle_limit_state)
+        t.register(":CALCulate#:LIMit:DISPlay",
+                   handler=self._handle_limit_display)
+        t.register(":CALCulate#:LIMit:FAIL",
+                   query_handler=self._handle_limit_fail)
+        t.register(":CALCulate#:LIMit:DATA", handler=self._handle_limit_data)
+        t.register(":CALCulate#:LIMit:OFFSet:AMPLitude",
+                   handler=self._handle_limit_offset_ampl)
+        t.register(":CALCulate#:LIMit:OFFSet:STIMulus",
+                   handler=self._handle_limit_offset_stim)
+
+        # Trace math / memory (E5071B: CALC:MATH)
+        t.register(":CALCulate#:MATH:FUNCtion",
+                   handler=self._handle_math_func)
+        t.register(":CALCulate#:MATH:MEMorize",
+                   set_handler=self._handle_math_memorize)
+        t.register(":CALCulate#:MATH:STATistics:STATe",
+                   handler=self._handle_math_stats_state)
+        t.register(":CALCulate#:MATH:STATistics:DATA",
+                   query_handler=self._handle_math_stats_data)
+
+        # Trigger (ENA-style)
+        t.register(":TRIGger:SOURce", handler=self._handle_trig_src_query)
         t.register(":TRIGger:SING", set_handler=self._handle_trig_sing)
+        t.register(":TRIGger:SCOPe", set_handler=self._handle_trig_scope)
+        t.register(":TRIGger:POINt", handler=self._handle_trig_point)
         t.register(":INITiate#:CONTinuous", set_handler=self._handle_init_cont)
         t.register(":INITiate#:IMMediate", set_handler=self._handle_init_imm)
 
         # Channel activation
         t.register(":DISPlay:WINDow#:ACT",
                    set_handler=self._handle_chan_activate)
+        t.register(":DISPlay:WINDow#:Y:AUTO",
+                   set_handler=self._handle_disp_auto_scale)
 
         # Data format
         t.register(":FORMat:DATA", handler=self._handle_form_data)
@@ -169,6 +410,18 @@ class ENACommandsMixin:
                    query_handler=self._handle_serv_port_count)
         t.register(":SERVice:CHANnel:COUNt",
                    query_handler=self._handle_serv_chan_count)
+        t.register(":SERVice:CHANnel:TRACe:COUNt",
+                   query_handler=self._handle_serv_trace_count)
+        t.register(":SERVice:CHANnel:ACTive",
+                   query_handler=self._handle_serv_active_ch)
+        t.register(":SERVice:CHANnel:TRACe:ACTive",
+                   query_handler=self._handle_serv_active_trace)
+        t.register(":SERVice:SWEep:FREQuency:MAXimum",
+                   query_handler=self._handle_serv_freq_max)
+        t.register(":SERVice:SWEep:FREQuency:MINimum",
+                   query_handler=self._handle_serv_freq_min)
+        t.register(":SERVice:SWEep:POINts",
+                   query_handler=self._handle_serv_swp_points_max)
 
         # Display scale (without :SCALe)
         t.register(":DISPlay:WINDow#:TRACe#:Y:RLEVel",
@@ -194,8 +447,14 @@ class ENACommandsMixin:
         t.register(":SENSe#:CORRection:COEFficient:METHod:SOLT#",
                    set_handler=self._handle_corr_meth)
 
+        # Port extension (E5071B: SENS:CORR:EXT)
+        t.register(":SENSe#:CORRection:EXTension",
+                   handler=self._handle_port_ext_state)
+
         # Segment sweep (bulk)
         t.register(":SENSe#:SEGMent:DATA", handler=self._handle_seg_data)
+        t.register(":SENSe#:SEGMent:COUNt",
+                   query_handler=self._handle_seg_count_ena)
 
         # Frequency list
         t.register(":SENSe#:FREQuency:DATA", query_handler=self._handle_freq_data)
@@ -204,7 +463,9 @@ class ENACommandsMixin:
 
     def _handle_par_count(self, cmd: ParsedCommand) -> str | None:
         if cmd.is_query:
-            return "1"
+            ch = cmd.channel
+            count = sum(1 for ts in self._traces.values() if ts.channel == ch)
+            return str(max(count, 1))
         return None
 
     def _handle_form_data(self, cmd: ParsedCommand) -> str | None:
@@ -217,6 +478,33 @@ class ENACommandsMixin:
 
     def _handle_serv_chan_count(self, cmd: ParsedCommand) -> str:
         return str(len(self._channels))
+
+    def _handle_serv_trace_count(self, cmd: ParsedCommand) -> str:
+        return str(len(self._traces))
+
+    def _handle_serv_active_ch(self, cmd: ParsedCommand) -> str:
+        return str(self._active_channel)
+
+    def _handle_serv_active_trace(self, cmd: ParsedCommand) -> str:
+        return str(self._active_trace)
+
+    def _handle_serv_freq_max(self, cmd: ParsedCommand) -> str:
+        return "8500000000"
+
+    def _handle_serv_freq_min(self, cmd: ParsedCommand) -> str:
+        return "300000"
+
+    def _handle_serv_swp_points_max(self, cmd: ParsedCommand) -> str:
+        return "1601"
+
+    def _handle_seg_count_ena(self, cmd: ParsedCommand) -> str:
+        state = self._ch(cmd)
+        if not state.segment_data:
+            return "0"
+        parts = state.segment_data.split(",")
+        if len(parts) >= 2:
+            return parts[1]
+        return "0"
 
 
 # =====================================================================
